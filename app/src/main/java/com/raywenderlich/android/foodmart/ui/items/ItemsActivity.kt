@@ -31,6 +31,8 @@
 
 package com.raywenderlich.android.foodmart.ui.items
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.os.Bundle
@@ -155,12 +157,20 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
     val yAnimator = objectAnimatorOfFloat(viewToAnimate, "y", foodImagePosition[1].toFloat(), itemCountCirclePosition[1].toFloat() - foodImageSize)
     val alphaAnimator = objectAnimatorOfFloat(viewToAnimate, "alpha", 0f, 1f)
 
+    cartButton.isEnabled = false
+
     AnimatorSet().apply {
       play(xAnimator).with(yAnimator).with(alphaAnimator)
+
+      addListener(object : AnimatorListenerAdapter() {
+        override fun onAnimationEnd(p0: Animator?) {
+          presenter.addItem(item)
+          itemsRootView.removeView(viewToAnimate)
+          cartButton.isEnabled = true
+        }
+      })
       start()
     }
-
-    presenter.addItem(item)
   }
 
   private fun getPositionOf(view: View?): IntArray {
