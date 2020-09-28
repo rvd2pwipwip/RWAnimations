@@ -31,6 +31,7 @@
 
 package com.raywenderlich.android.foodmart.ui.cart
 
+import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
@@ -38,6 +39,9 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.BounceInterpolator
+import android.view.animation.OvershootInterpolator
 import com.raywenderlich.android.foodmart.R
 import com.raywenderlich.android.foodmart.model.Food
 import com.raywenderlich.android.foodmart.model.events.CartDeleteItemEvent
@@ -51,92 +55,111 @@ import org.greenrobot.eventbus.ThreadMode
 
 class CartActivity : AppCompatActivity(), CartContract.View, CartAdapter.CartAdapterListener {
 
-  override lateinit var presenter: CartContract.Presenter
-  private val adapter = CartAdapter(mutableListOf(), this)
+    override lateinit var presenter: CartContract.Presenter
+    private val adapter = CartAdapter(mutableListOf(), this)
 
-  companion object {
-    fun newIntent(context: Context) = Intent(context, CartActivity::class.java)
-  }
-
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_cart)
-
-    presenter = Injection.provideCartPresenter(this)
-
-    title = getString(R.string.cart_title)
-
-    setupRecyclerView()
-  }
-
-  private fun setupRecyclerView() {
-    cartRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-    cartRecyclerView.adapter = adapter
-  }
-
-  override fun onResume() {
-    super.onResume()
-    presenter.start()
-    EventBus.getDefault().register(this)
-  }
-
-  override fun onPause() {
-    super.onPause()
-    EventBus.getDefault().unregister(this)
-  }
-
-  override fun showCart(items: List<Food>, notify: Boolean) {
-    adapter.updateItems(items, notify)
-    if (items.isEmpty()) {
-      emptyLabel.visibility = View.VISIBLE
-      cartRecyclerView.visibility = View.INVISIBLE
-      checkoutButton.isEnabled = false
-    } else {
-      emptyLabel.visibility = View.INVISIBLE
-      cartRecyclerView.visibility = View.VISIBLE
-      checkoutButton.isEnabled = true
+    companion object {
+        fun newIntent(context: Context) = Intent(context, CartActivity::class.java)
     }
-  }
 
-  override fun removeItem(item: Food) {
-    presenter.removeItem(item)
-  }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_cart)
 
-  @Suppress("UNUSED_PARAMETER")
-  fun showPaymentMethods(view: View) {
+        presenter = Injection.provideCartPresenter(this)
+
+        title = getString(R.string.cart_title)
+
+        setupRecyclerView()
+    }
+
+    private fun setupRecyclerView() {
+        cartRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        cartRecyclerView.adapter = adapter
+    }
+
+    override fun onResume() {
+        super.onResume()
+        presenter.start()
+        EventBus.getDefault().register(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        EventBus.getDefault().unregister(this)
+    }
+
+    override fun showCart(items: List<Food>, notify: Boolean) {
+        adapter.updateItems(items, notify)
+        if (items.isEmpty()) {
+            emptyLabel.visibility = View.VISIBLE
+            cartRecyclerView.visibility = View.INVISIBLE
+            checkoutButton.isEnabled = false
+        } else {
+            emptyLabel.visibility = View.INVISIBLE
+            cartRecyclerView.visibility = View.VISIBLE
+            checkoutButton.isEnabled = true
+        }
+    }
+
+    override fun removeItem(item: Food) {
+        presenter.removeItem(item)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun showPaymentMethods(view: View) {
 //    checkoutButton.visibility = View.INVISIBLE
 //    paymentMethodContainer.visibility = View.VISIBLE
-    animatePaymentMethodContainer()
-  }
-
-  @Suppress("UNUSED_PARAMETER")
-  fun closePaymentMethods(view: View) {
-//    checkoutButton.visibility = View.VISIBLE
-    paymentMethodContainer.visibility = View.INVISIBLE
-  }
-
-  @Suppress("UNUSED_PARAMETER")
-  fun paymentMethodSelected(view: View) {
-    startActivity(CheckoutActivity.newIntent(this))
-  }
-
-  @Subscribe(threadMode = ThreadMode.MAIN)
-  fun onCartDeleteItemEvent(event: CartDeleteItemEvent) {
-    adapter.notifyItemRemoved(event.position)
-    presenter.loadCart(false)
-  }
-
-  // value animator
-  private fun animatePaymentMethodContainer() {
-    paymentMethodContainer.visibility = View.VISIBLE
-    val animator = ValueAnimator.ofFloat(paymentMethodContainer.height.toFloat(), 0f)
-    animator.duration = 500
-    animator.start()
-
-    // animator listener
-    animator.addUpdateListener { updatedAnimation ->
-      val animatedValue = updatedAnimation.animatedValue as Float
-      paymentMethodContainer.translationY = animatedValue
+        animateShowPaymentMethodContainer()
     }
-  }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun closePaymentMethods(view: View) {
+//    checkoutButton.visibility = View.VISIBLE
+//    paymentMethodContainer.visibility = View.INVISIBLE
+        animateHidePaymentMethodContainer()
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun paymentMethodSelected(view: View) {
+        startActivity(CheckoutActivity.newIntent(this))
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onCartDeleteItemEvent(event: CartDeleteItemEvent) {
+        adapter.notifyItemRemoved(event.position)
+        presenter.loadCart(false)
+    }
+
+//  // value animator
+//  private fun animatePaymentMethodContainer() {
+//    paymentMethodContainer.visibility = View.VISIBLE
+//    val animator = ValueAnimator.ofFloat(paymentMethodContainer.height.toFloat(), 0f)
+//    animator.duration = 500
+//    animator.start()
+//
+//    // animator listener
+//    animator.addUpdateListener { updatedAnimation ->
+//      val animatedValue = updatedAnimation.animatedValue as Float
+//      paymentMethodContainer.translationY = animatedValue
+//    }
+//  }
+
+    private fun animateShowPaymentMethodContainer() {
+//        paymentMethodContainer.visibility = View.VISIBLE
+        animatePaymentMethodContainer(paymentMethodContainer.height.toFloat(), 0f)
+    }
+
+    private fun animateHidePaymentMethodContainer() {
+        animatePaymentMethodContainer(0f, paymentMethodContainer.height.toFloat())
+    }
+
+    // object animator
+    private fun animatePaymentMethodContainer(startValue: Float, endValue: Float) {
+        paymentMethodContainer.visibility = View.VISIBLE
+        val animator = ObjectAnimator.ofFloat(paymentMethodContainer, "translationY", startValue, endValue)
+        animator.interpolator = AccelerateDecelerateInterpolator()
+        animator.duration = 500
+        animator.start()
+    }
 }
