@@ -31,10 +31,7 @@
 
 package com.raywenderlich.android.foodmart.ui.items
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
+import android.animation.*
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -142,6 +139,7 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
 
   override fun removeItem(item: Food) {
     presenter.removeItem(item)
+    cartIconAnimatorSet().start()
   }
 
   override fun addItem(item: Food, foodImageView: ImageView, cartButton: ImageView) {
@@ -157,6 +155,8 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
     val yAnimator = objectAnimatorOfFloat(viewToAnimate, "y", foodImagePosition[1].toFloat(), itemCountCirclePosition[1].toFloat() - foodImageSize)
     val alphaAnimator = objectAnimatorOfFloat(viewToAnimate, "alpha", 0f, 1f)
 
+    val cartIconAnimatorSet = cartIconAnimatorSet()
+
     cartButton.isEnabled = false
 
     AnimatorSet().apply {
@@ -164,6 +164,7 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
 
       addListener(object : AnimatorListenerAdapter() {
         override fun onAnimationEnd(p0: Animator?) {
+          cartIconAnimatorSet.start()
           presenter.addItem(item)
           itemsRootView.removeView(viewToAnimate)
           cartButton.isEnabled = true
@@ -195,6 +196,21 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
     animator.interpolator = AccelerateDecelerateInterpolator()
     animator.duration = DURATION
     return animator
+  }
+
+  private fun cartIconAnimatorSet(): AnimatorSet {
+    val iconScaleAnimatorX = ObjectAnimator.ofFloat(itemCountCircle, View.SCALE_X, 1f, 1.5f)
+    iconScaleAnimatorX.duration = 200L
+    iconScaleAnimatorX.repeatCount = 1
+    iconScaleAnimatorX.repeatMode = ValueAnimator.REVERSE
+    val iconScaleAnimatorY = ObjectAnimator.ofFloat(itemCountCircle, View.SCALE_Y, 1f, 1.5f)
+    iconScaleAnimatorY.duration = 200L
+    iconScaleAnimatorY.repeatCount = 1
+    iconScaleAnimatorY.repeatMode = ValueAnimator.REVERSE
+
+    val iconAnimatorSet = AnimatorSet()
+    iconAnimatorSet.play(iconScaleAnimatorX).with(iconScaleAnimatorY)
+    return  iconAnimatorSet
   }
 
   @Suppress("UNUSED_PARAMETER")
