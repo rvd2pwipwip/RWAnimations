@@ -31,6 +31,8 @@
 
 package com.raywenderlich.android.foodmart.ui.cart
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
@@ -39,6 +41,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
+import android.view.ViewAnimationUtils
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.BounceInterpolator
 import android.view.animation.OvershootInterpolator
@@ -51,6 +54,7 @@ import kotlinx.android.synthetic.main.activity_cart.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import kotlin.math.hypot
 
 
 class CartActivity : AppCompatActivity(), CartContract.View, CartAdapter.CartAdapterListener {
@@ -147,19 +151,38 @@ class CartActivity : AppCompatActivity(), CartContract.View, CartAdapter.CartAda
 
     private fun animateShowPaymentMethodContainer() {
 //        paymentMethodContainer.visibility = View.VISIBLE
-        animatePaymentMethodContainer(paymentMethodContainer.height.toFloat(), 0f)
+//        animatePaymentMethodContainer(paymentMethodContainer.height.toFloat(), 0f)
+
+        val clipInfo = PaymentMethodClipInfo()
+        val anim = ViewAnimationUtils.createCircularReveal(paymentMethodContainer, clipInfo.x, clipInfo.y, 0f, clipInfo.radius)
+        paymentMethodContainer.visibility = View.VISIBLE
+        anim.start()
     }
 
     private fun animateHidePaymentMethodContainer() {
-        animatePaymentMethodContainer(0f, paymentMethodContainer.height.toFloat())
+//        animatePaymentMethodContainer(0f, paymentMethodContainer.height.toFloat())
+        val clipInfo = PaymentMethodClipInfo()
+        val anim = ViewAnimationUtils.createCircularReveal(paymentMethodContainer, clipInfo.x, clipInfo.y, clipInfo.radius, 0f)
+        anim.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+                paymentMethodContainer.visibility = View.INVISIBLE
+            }
+        })
+        anim.start()
     }
 
     // object animator
-    private fun animatePaymentMethodContainer(startValue: Float, endValue: Float) {
-        paymentMethodContainer.visibility = View.VISIBLE
-        val animator = ObjectAnimator.ofFloat(paymentMethodContainer, "translationY", startValue, endValue)
-        animator.interpolator = AccelerateDecelerateInterpolator()
-        animator.duration = 500
-        animator.start()
+//    private fun animatePaymentMethodContainer(startValue: Float, endValue: Float) {
+////        paymentMethodContainer.visibility = View.VISIBLE
+//        val animator = ObjectAnimator.ofFloat(paymentMethodContainer, "translationY", startValue, endValue)
+//        animator.interpolator = AccelerateDecelerateInterpolator()
+//        animator.duration = 500
+//        animator.start()
+//    }
+
+    private inner class PaymentMethodClipInfo {
+        val x = paymentMethodContainer.width / 2
+        val y = paymentMethodContainer.height - checkoutButton.height
+        val radius = hypot(x.toDouble(), y.toDouble()).toFloat()
     }
 }
