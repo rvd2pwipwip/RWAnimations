@@ -53,6 +53,7 @@ import com.raywenderlich.android.foodmart.ui.cart.CartActivity
 import com.raywenderlich.android.foodmart.ui.categories.CategoriesActivity
 import com.raywenderlich.android.foodmart.ui.detail.FoodActivity
 import kotlinx.android.synthetic.main.activity_items.*
+import kotlinx.android.synthetic.main.list_item_cart.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -220,7 +221,11 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
   override fun showFoodDetail(view: View, food: Food) {
     val foodImage = view.findViewById<ImageView>(R.id.foodImage)
     val imagePair = Pair.create(foodImage as View, "tImage")
-    val options = ActivityOptionsCompat.makeSceneTransitionAnimation(this@ItemsActivity, imagePair)
+
+    val foodName = view.findViewById<TextView>(R.id.name)
+    val namePair = Pair.create(foodName as View, "tName")
+
+    val options = ActivityOptionsCompat.makeSceneTransitionAnimation(this@ItemsActivity, imagePair, namePair)
     ActivityCompat.startActivity(this@ItemsActivity, FoodActivity.newIntent(this, food.id), options.toBundle())
   }
 
