@@ -33,8 +33,11 @@ package com.raywenderlich.android.foodmart.ui.items
 
 import android.animation.*
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
+import android.support.v4.app.ActivityOptionsCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v4.util.Pair
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -48,6 +51,7 @@ import com.raywenderlich.android.foodmart.model.events.CartEvent
 import com.raywenderlich.android.foodmart.ui.Injection
 import com.raywenderlich.android.foodmart.ui.cart.CartActivity
 import com.raywenderlich.android.foodmart.ui.categories.CategoriesActivity
+import com.raywenderlich.android.foodmart.ui.detail.FoodActivity
 import kotlinx.android.synthetic.main.activity_items.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -211,6 +215,13 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
     val iconAnimatorSet = AnimatorSet()
     iconAnimatorSet.play(iconScaleAnimatorX).with(iconScaleAnimatorY)
     return  iconAnimatorSet
+  }
+
+  override fun showFoodDetail(view: View, food: Food) {
+    val foodImage = view.findViewById<ImageView>(R.id.foodImage)
+    val imagePair = Pair.create(foodImage as View, "tImage")
+    val options = ActivityOptionsCompat.makeSceneTransitionAnimation(this@ItemsActivity, imagePair)
+    ActivityCompat.startActivity(this@ItemsActivity, FoodActivity.newIntent(this, food.id), options.toBundle())
   }
 
   @Suppress("UNUSED_PARAMETER")

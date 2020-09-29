@@ -111,6 +111,11 @@ class FoodActivity : AppCompatActivity(), FoodContract.View {
     }
   }
 
+  override fun onBackPressed() {
+    super.onBackPressed()
+    fab.visibility = View.GONE
+  }
+
   override fun onResume() {
     super.onResume()
     EventBus.getDefault().register(this)
