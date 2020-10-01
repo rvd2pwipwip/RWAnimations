@@ -245,6 +245,14 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
     ActivityCompat.startActivity(this@ItemsActivity, FoodActivity.newIntent(this, food.id), options.toBundle())
   }
 
+  override fun addFavorite(item: Food) {
+    presenter.addFavorite(item)
+  }
+
+  override fun removeFavorite(item: Food) {
+    presenter.removeFavorite(item)
+  }
+
   @Suppress("UNUSED_PARAMETER")
   @Subscribe(threadMode = ThreadMode.MAIN)
   fun onCartEvent(event: CartEvent) {
