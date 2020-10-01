@@ -32,6 +32,7 @@
 package com.raywenderlich.android.foodmart.ui.items
 
 import android.animation.*
+import android.graphics.drawable.Animatable
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.ActivityOptionsCompat
@@ -142,9 +143,17 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
     adapter.updateItems(items)
   }
 
-  override fun removeItem(item: Food) {
-    presenter.removeItem(item)
-    cartIconAnimatorSet().start()
+  override fun removeItem(item: Food, cartButton: ImageView) {
+    animatedCartButton(cartButton, false)
+    cartIconAnimatorSet().apply {
+      addListener(object: AnimatorListenerAdapter() {
+        override fun onAnimationEnd(animation: Animator?) {
+          super.onAnimationEnd(animation)
+          presenter.removeItem(item)
+        }
+      })
+      start()
+    }
   }
 
   override fun addItem(item: Food, foodImageView: ImageView, cartButton: ImageView) {
@@ -177,6 +186,13 @@ class ItemsActivity : AppCompatActivity(), ItemsContract.View, ItemsAdapter.Item
       })
       start()
     }
+    animatedCartButton(cartButton, true)
+  }
+
+  private fun animatedCartButton(cartButton: ImageView, morphToDone: Boolean) {
+    cartButton.setImageResource(if (morphToDone) R.drawable.ic_morph else R.drawable.ic_morph_reversed)
+    val animatable = cartButton.drawable as Animatable
+    animatable.start()
   }
 
   private fun getPositionOf(view: View?): IntArray {
