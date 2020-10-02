@@ -34,10 +34,28 @@ package com.raywenderlich.android.foodmart.ui.checkout
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.support.animation.DynamicAnimation
+import android.support.animation.SpringAnimation
+import android.support.animation.SpringForce
 import android.support.v7.app.AppCompatActivity
+import android.view.MotionEvent
 import com.raywenderlich.android.foodmart.R
+import kotlinx.android.synthetic.main.activity_checkout.*
 
 class CheckoutActivity : AppCompatActivity() {
+
+  private var xPositionDiff = 0f
+
+  private val springForce: SpringForce by lazy {
+    SpringForce(0f).apply {
+      stiffness = SpringForce.STIFFNESS_MEDIUM
+      dampingRatio = SpringForce.DAMPING_RATIO_HIGH_BOUNCY
+    }
+  }
+
+  private val springAnimationX: SpringAnimation by lazy {
+    SpringAnimation(donut, DynamicAnimation.TRANSLATION_X).setSpring(springForce)
+  }
 
   companion object {
     fun newIntent(context: Context) = Intent(context, CheckoutActivity::class.java)
@@ -48,5 +66,25 @@ class CheckoutActivity : AppCompatActivity() {
     setContentView(R.layout.activity_checkout)
 
     title = getString(R.string.checkout_title)
+
+    setupTouchListener()
+  }
+
+  private fun setupTouchListener() {
+    donut.setOnTouchListener { view, motionEvent ->
+      when (motionEvent?.action) {
+        MotionEvent.ACTION_DOWN -> {
+          xPositionDiff = motionEvent.rawX - view.x
+          springAnimationX.cancel()
+        }
+        MotionEvent.ACTION_MOVE -> {
+          donut.x = motionEvent.rawX - xPositionDiff
+        }
+        MotionEvent.ACTION_UP -> {
+          springAnimationX.start()
+        }
+      }
+      true
+    }
   }
 }
