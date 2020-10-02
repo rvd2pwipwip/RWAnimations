@@ -45,16 +45,21 @@ import kotlinx.android.synthetic.main.activity_checkout.*
 class CheckoutActivity : AppCompatActivity() {
 
   private var xPositionDiff = 0f
+  private var yPositionDiff = 0f
 
   private val springForce: SpringForce by lazy {
     SpringForce(0f).apply {
-      stiffness = SpringForce.STIFFNESS_MEDIUM
-      dampingRatio = SpringForce.DAMPING_RATIO_HIGH_BOUNCY
+      stiffness = SpringForce.STIFFNESS_LOW
+      dampingRatio = SpringForce.DAMPING_RATIO_MEDIUM_BOUNCY
     }
   }
 
   private val springAnimationX: SpringAnimation by lazy {
     SpringAnimation(donut, DynamicAnimation.TRANSLATION_X).setSpring(springForce)
+  }
+
+  private val springAnimationY: SpringAnimation by lazy {
+    SpringAnimation(donut, DynamicAnimation.TRANSLATION_Y).setSpring(springForce)
   }
 
   companion object {
@@ -75,13 +80,17 @@ class CheckoutActivity : AppCompatActivity() {
       when (motionEvent?.action) {
         MotionEvent.ACTION_DOWN -> {
           xPositionDiff = motionEvent.rawX - view.x
+          yPositionDiff = motionEvent.rawY - view.y
           springAnimationX.cancel()
+          springAnimationY.cancel()
         }
         MotionEvent.ACTION_MOVE -> {
           donut.x = motionEvent.rawX - xPositionDiff
+          donut.y = motionEvent.rawY - yPositionDiff
         }
         MotionEvent.ACTION_UP -> {
           springAnimationX.start()
+          springAnimationY.start()
         }
       }
       true
