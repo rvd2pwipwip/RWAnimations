@@ -56,7 +56,8 @@ class CheckoutActivity : AppCompatActivity() {
 //  private var xPositionDiff = 0f
 //  private var yPositionDiff = 0f
 
-  private var donutFlingCount = 0f
+  private var donutFlingCount = 0
+  private var cookieFlingCount = 0
 
 //  private val springForce: SpringForce by lazy {
 //    SpringForce(0f).apply {
@@ -87,6 +88,20 @@ class CheckoutActivity : AppCompatActivity() {
     }
   }
 
+  private val cookieGestureListener = object : GestureDetector.SimpleOnGestureListener() {
+    override fun onDown(e: MotionEvent?) = true
+    override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
+      if (cookieFlingCount < 1) {
+        cookieFlingAnimationX.setStartVelocity(velocityX)
+        cookieFlingAnimationY.setStartVelocity(velocityY)
+
+        cookieFlingAnimationX.start()
+        cookieFlingAnimationY.start()
+      }
+      return true
+    }
+  }
+
   private val donutGestureDetector: GestureDetector by lazy {
     GestureDetector(this, donutGestureListener)
   }
@@ -97,6 +112,18 @@ class CheckoutActivity : AppCompatActivity() {
 
   private val donutFlingAnimationY: FlingAnimation by lazy {
     FlingAnimation(donut, DynamicAnimation.Y).setFriction(1f)
+  }
+
+  private val cookieGestureDetector: GestureDetector by lazy {
+    GestureDetector(this, cookieGestureListener)
+  }
+
+  private val cookieFlingAnimationX: FlingAnimation by lazy {
+    FlingAnimation(cookie, DynamicAnimation.X).setFriction(1f)
+  }
+
+  private val cookieFlingAnimationY: FlingAnimation by lazy {
+    FlingAnimation(cookie, DynamicAnimation.Y).setFriction(1f)
   }
 
   companion object {
@@ -156,17 +183,27 @@ class CheckoutActivity : AppCompatActivity() {
     donut.setOnTouchListener { _, motionEvent ->
       donutGestureDetector.onTouchEvent(motionEvent)
     }
+    cookie.setOnTouchListener { _, motionEvent ->
+      cookieGestureDetector.onTouchEvent(motionEvent)
+    }
   }
 
   private fun setupTreeObserver() {
+    val displayMetrics = DisplayMetrics()
+    windowManager.defaultDisplay.getMetrics(displayMetrics)
+    val width = displayMetrics.widthPixels
+    val height = displayMetrics.heightPixels
     donut.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
       override fun onGlobalLayout() {
-        val displayMetrics = DisplayMetrics()
-        windowManager.defaultDisplay.getMetrics(displayMetrics)
-        val width = displayMetrics.widthPixels
-        val height = displayMetrics.heightPixels
         donutFlingAnimationX.setMinValue(0f).setMaxValue((width - donut.width).toFloat())
         donutFlingAnimationY.setMinValue(0f).setMaxValue((height - 2 * donut.height).toFloat())
+        donut.viewTreeObserver.removeOnGlobalLayoutListener(this)
+      }
+    })
+    cookie.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+      override fun onGlobalLayout() {
+        cookieFlingAnimationX.setMinValue(0f).setMaxValue((width - cookie.width).toFloat())
+        cookieFlingAnimationY.setMinValue(0f).setMaxValue((height - 2 * cookie.height).toFloat())
         donut.viewTreeObserver.removeOnGlobalLayoutListener(this)
       }
     })
@@ -177,6 +214,12 @@ class CheckoutActivity : AppCompatActivity() {
       donutFlingCount += 1
       if (isViewOverlapping(donut, block)) {
         toast(getString(R.string.free_donuts))
+      }
+    }
+    cookieFlingAnimationX.addEndListener { _, _, _, _ ->
+      cookieFlingCount += 1
+      if (isViewOverlapping(cookie, block)) {
+        toast(getString(R.string.free_cookies))
       }
     }
   }

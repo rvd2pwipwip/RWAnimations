@@ -21,4 +21,6 @@
     <string name="happy_monster">Happy Monster</string>
     <string name="donut_description">donut</string>
     <string name="free_donuts">FREE DONUTS!!!</string>
+    <string name="cookie_description">cookie</string>
+    <string name="free_cookies">FREE COOKIES!!!</string>
 </resources>
